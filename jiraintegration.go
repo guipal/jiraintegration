@@ -41,6 +41,13 @@ func main() {
 		password = string(pass)
 	}
 
-	jirautils.ExportTests(hostUrl, filter, directory, user, password, keys)
+	switch mode {
+
+	case "EXPORT":
+		jirautils.ExportTests(hostUrl, filter, directory, user, password, keys)
+	case "IMPORT":
+		jirautils.ImportTestsExecution(hostUrl, directory, user, password)
+
+	}
 
 }
