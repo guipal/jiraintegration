@@ -41,7 +41,6 @@ func ExportTests(host string, filter int, outputDirectory, user, password, keys 
 		// handle error
 		fmt.Println(err)
 	} else {
-		fmt.Println("Response from server:", resp)
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			fmt.Println(err)
