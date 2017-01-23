@@ -8,11 +8,13 @@ import (
 	"os"
 
 	"github.com/guipal/jiraintegration/jirautils"
+
+	"github.com/howeyc/gopass"
 )
 
 func main() {
 
-	var mode, directory, hostUrl string
+	var mode, directory, hostUrl, user, password, keys string
 	var filter int
 
 	flag.StringVar(&mode, "mode", "EXPORT", " [ EXPORT Export tests from Jira | IMPORT Import tests results to Jira | UPDATE Update with HTML report URL to Jenkins]")
@@ -22,6 +24,9 @@ func main() {
 	flag.IntVar(&filter, "filter", 0, "Filter query to retrieve tests")
 
 	flag.StringVar(&hostUrl, "host", "", "Jira server URL")
+	flag.StringVar(&user, "user", "", "Jira server user")
+	flag.StringVar(&password, "password", "", "Jira server password")
+	flag.StringVar(&keys, "keys", "", " list of Jira-keys of the tests separated by ';'")
 
 	flag.Parse()
 
@@ -30,6 +35,12 @@ func main() {
 		return
 	}
 
-	jirautils.ExportTests(hostUrl, filter, directory)
+	if password == "" {
+		fmt.Printf("Password: ")
+		pass, _ := gopass.GetPasswd()
+		password = string(pass)
+	}
+
+	jirautils.ExportTests(hostUrl, filter, directory, user, password, keys)
 
 }

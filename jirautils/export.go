@@ -20,24 +20,34 @@ import (
 )
 
 // exportTests export test to selected output directory
-func ExportTests(host string, filter int, outputDirectory string) {
+func ExportTests(host string, filter int, outputDirectory, user, password, keys string) {
 	os.MkdirAll(outputDirectory, os.ModePerm)
 	os.Chdir(outputDirectory)
+	reqUrl := host + "/rest/raven/1.0/export/test?fz=true"
+	if filter != 0 {
+		reqUrl = reqUrl + "&filter=" + strconv.Itoa(filter)
+	}
+	if keys != "" {
+		reqUrl = reqUrl + "&keys=" + keys
+	}
 
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", host+"/jira/rest/raven/1.0/export/test?filter="+strconv.Itoa(filter), nil)
+	req, err := http.NewRequest("GET", reqUrl, nil)
+	fmt.Println(reqUrl)
+	req.SetBasicAuth(user, password)
 	// ...
-	req.Header.Add("Authorization", "Basic bHV6aGVvbGc6QWRpLUFxYV8yMDE2")
 	resp, err := client.Do(req)
 	if err != nil {
 		// handle error
+		fmt.Println(err)
 	} else {
 		fmt.Println("Response from server:", resp)
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
+			fmt.Println(err)
 		} else {
 			ioutil.WriteFile("features.zip", body, os.ModePerm)
-			err := Unzip("features.zip", ".")
+			err := unzip("features.zip", ".")
 			if err != nil {
 				os.Remove("features.zip")
 
@@ -48,7 +58,7 @@ func ExportTests(host string, filter int, outputDirectory string) {
 	}
 
 }
-func Unzip(src, dest string) error {
+func unzip(src, dest string) error {
 	r, err := zip.OpenReader(src)
 	if err != nil {
 		return err
