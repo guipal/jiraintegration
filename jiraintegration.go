@@ -24,7 +24,7 @@ func main() {
 
 	flag.BoolVar(&exportResult, "export", false, "Export cucumber results to Jira")
 	flag.BoolVar(&importTest, "download_test", false, "Download test Scenarios from Jira")
-	flag.BoolVar(&executeTest, "execute", true, "Execute test Scenarios from $featuresDir")
+	flag.BoolVar(&executeTest, "execute", false, "Execute test Scenarios from $featuresDir")
 	flag.BoolVar(&executeRemote, "executeRemote", false, "Download, Execute & Upload test from/to $host server")
 
 	flag.StringVar(&directory, "featuresDir", "./features", "Target directory for downloaded tests")
@@ -46,6 +46,10 @@ func main() {
 	if (importTest || exportResult || executeRemote) && hostUrl == "" {
 		fmt.Println("Missing host url, try " + os.Args[0] + " -h")
 		return
+	}
+
+	if !importTest && !exportResult && !executeRemote && !executeTest {
+		executeTest = true
 	}
 
 	if (importTest || exportResult || executeRemote) && password == "" && passwordFile == "" {

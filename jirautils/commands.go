@@ -73,7 +73,8 @@ func ExportTestExecution(host, resultsFile, user, password string) error {
 	}
 
 	if resp.StatusCode != 200 {
-		return errors.New("Problem uploading results")
+		body, _ := ioutil.ReadAll(resp.Body)
+		return errors.New("Problem uploading results" + string(body))
 	}
 
 	return nil
