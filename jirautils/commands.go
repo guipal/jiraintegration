@@ -8,8 +8,6 @@ import (
 
 	"net/http"
 
-	"fmt"
-
 	"strconv"
 
 	"io/ioutil"
@@ -34,7 +32,6 @@ func DownloadTests(host string, filter int, outputDirectory, user, password, key
 
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", reqUrl, nil)
-	fmt.Println(reqUrl)
 	req.SetBasicAuth(user, password)
 	// ...
 	resp, err := client.Do(req)
@@ -86,7 +83,7 @@ func ExportTestExecution(host, resultsFile, user, password string) error {
 func ExecuteTestSet(host string, filter int, outputDirectory, user, password, keys, resultFile string) (err error) {
 
 	DownloadTests(host, filter, outputDirectory, user, password, keys)
-	err1 := ExecuteCucumberTest(resultFile, outputDirectory)
+	err1 := ExecuteCucumberTest("json_pretty", resultFile, outputDirectory)
 	if err1 != nil {
 		return err1
 	}
@@ -99,10 +96,19 @@ func ExecuteTestSet(host string, filter int, outputDirectory, user, password, ke
 
 }
 
-func ExecuteCucumberTest(resultFile, featureDir string) (err error) {
+func ExecuteCucumberTest(format, resultFile, featureDir string) (err error) {
 	cmd := "cucumber"
-	args := []string{"-x", "--format=json_pretty", "--out=" + resultFile, featureDir}
+	args := []string{"-x"}
+	if format != "" {
+		args = append(args, "--format="+format)
+	}
+
+	if resultFile != "" {
+		args = append(args, "--out="+resultFile)
+	}
+	args = append(args, featureDir)
 	cucumberCommand := exec.Command(cmd, args...)
+	cucumberCommand.Stdout = os.Stdout
 	cucumberCommand.Stderr = os.Stderr
 	if err := cucumberCommand.Run(); err != nil {
 		if exists, _ := Exists(resultFile); !exists {

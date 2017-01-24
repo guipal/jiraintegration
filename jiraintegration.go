@@ -18,7 +18,7 @@ import (
 
 func main() {
 
-	var directory, hostUrl, user, password, passwordFile, keys, resultPath string
+	var directory, hostUrl, user, password, passwordFile, keys, resultPath, format string
 	var exportResult, importTest, executeTest, executeRemote bool
 	var filter int
 
@@ -33,10 +33,11 @@ func main() {
 
 	flag.StringVar(&hostUrl, "host", "", "Jira server URL")
 	flag.StringVar(&user, "user", "", "Jira server user")
+	flag.StringVar(&format, "format", "", "Cucumber test result format")
 	flag.StringVar(&password, "password", "", "Jira server password")
 	flag.StringVar(&passwordFile, "passwordFile", "", "Jira server password file")
 	flag.StringVar(&keys, "keys", "", " list of Jira-keys of the tests separated by ';'")
-	flag.StringVar(&resultPath, "resultFile", "./results.json", " Path to cucumber result file")
+	flag.StringVar(&resultPath, "resultFile", "", " Path to cucumber result file")
 
 	flag.Parse()
 
@@ -60,6 +61,10 @@ func main() {
 	}
 
 	if executeRemote {
+		if resultPath == "" {
+			resultPath = "./results.json"
+		}
+
 		err := jirautils.ExecuteTestSet(hostUrl, filter, directory, user, password, keys, resultPath)
 		if err != nil {
 			fmt.Println(err)
@@ -80,7 +85,7 @@ func main() {
 				}
 			}
 
-			err := jirautils.ExecuteCucumberTest(resultPath, directory)
+			err := jirautils.ExecuteCucumberTest(format, resultPath, directory)
 			if err != nil {
 				fmt.Println(err)
 				os.Exit(1)
@@ -88,6 +93,10 @@ func main() {
 		}
 
 		if exportResult {
+			if resultPath == "" {
+				fmt.Println("No file provided")
+				os.Exit(1)
+			}
 			err := jirautils.ExportTestExecution(hostUrl, resultPath, user, password)
 			if err != nil {
 				fmt.Println(err)
