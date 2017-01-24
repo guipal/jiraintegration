@@ -12,6 +12,8 @@ import (
 	"github.com/howeyc/gopass"
 
 	"io/ioutil"
+
+	"strings"
 )
 
 func main() {
@@ -52,7 +54,7 @@ func main() {
 	} else {
 		if passwordFile != "" {
 			pass, _ := ioutil.ReadFile(passwordFile)
-			password = string(pass)
+			password = strings.TrimSpace(string(pass))
 		}
 
 	}
