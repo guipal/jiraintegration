@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 )
 
-func exists(path string) (bool, error) {
+func Exists(path string) (bool, error) {
 	_, err := os.Stat(path)
 	if err == nil {
 		return true, nil

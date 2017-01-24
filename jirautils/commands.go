@@ -100,13 +100,12 @@ func ExecuteTestSet(host string, filter int, outputDirectory, user, password, ke
 }
 
 func ExecuteCucumberTest(resultFile, featureDir string) (err error) {
-	fmt.Println("Executing cucumber test")
 	cmd := "cucumber"
 	args := []string{"-x", "--format=json_pretty", "--out=" + resultFile, featureDir}
 	cucumberCommand := exec.Command(cmd, args...)
 	cucumberCommand.Stderr = os.Stderr
 	if err := cucumberCommand.Run(); err != nil {
-		if exists, _ := exists(resultFile); !exists {
+		if exists, _ := Exists(resultFile); !exists {
 			return err
 		}
 	}
