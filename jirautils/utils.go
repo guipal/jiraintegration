@@ -1,63 +1,27 @@
 // Package jiraUtils contains utility functions for working with strings.
+
 package jirautils
 
 import (
 	"os"
 
-	"net/http"
-
-	"fmt"
-
-	"strconv"
-
-	"io"
-
-	"io/ioutil"
-
 	"archive/zip"
 
+	"io"
 	"path/filepath"
 )
 
-// exportTests export test to selected output directory
-func ExportTests(host string, filter int, outputDirectory, user, password, keys string) {
-	os.MkdirAll(outputDirectory, os.ModePerm)
-	os.Chdir(outputDirectory)
-	defer os.Chdir("../")
-	reqUrl := host + "/rest/raven/1.0/export/test?fz=true"
-	if filter != 0 {
-		reqUrl = reqUrl + "&filter=" + strconv.Itoa(filter)
+func exists(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true, nil
 	}
-	if keys != "" {
-		reqUrl = reqUrl + "&keys=" + keys
+	if os.IsNotExist(err) {
+		return false, nil
 	}
-
-	client := &http.Client{}
-	req, err := http.NewRequest("GET", reqUrl, nil)
-	fmt.Println(reqUrl)
-	req.SetBasicAuth(user, password)
-	// ...
-	resp, err := client.Do(req)
-	if err != nil {
-		// handle error
-		fmt.Println(err)
-	} else {
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			fmt.Println(err)
-		} else {
-			ioutil.WriteFile("features.zip", body, os.ModePerm)
-			err := unzip("features.zip", ".")
-			if err != nil {
-				os.Remove("features.zip")
-
-			} else {
-				os.Remove("features.zip")
-			}
-		}
-	}
-
+	return true, err
 }
+
 func unzip(src, dest string) error {
 	r, err := zip.OpenReader(src)
 	if err != nil {

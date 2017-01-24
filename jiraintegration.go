@@ -14,12 +14,16 @@ import (
 
 func main() {
 
-	var mode, directory, hostUrl, user, password, keys, resultPath string
+	var directory, hostUrl, user, password, keys, resultPath string
+	var exportResult, importTest, executeTest, executeRemote bool
 	var filter int
 
-	flag.StringVar(&mode, "mode", "EXPORT", " [ EXPORT Export tests from Jira | IMPORT Import tests results to Jira | UPDATE Update with HTML report URL to Jenkins | EXECUTE Execute tests and upload results]")
+	flag.BoolVar(&exportResult, "export", false, "Export cucumber resutlts to Jira")
+	flag.BoolVar(&importTest, "download_test", false, "Download test Scenarios from Jira")
+	flag.BoolVar(&executeTest, "execute", true, "Execute test Scenarios from $featuresDir")
+	flag.BoolVar(&executeRemote, "executeRemote", false, "Download, Execute & Upload test from/to $host server")
 
-	flag.StringVar(&directory, "outputDir", "./features", "Target directory for exported tests")
+	flag.StringVar(&directory, "featuresDir", "./features", "Target directory for downloaded tests")
 
 	flag.IntVar(&filter, "filter", 0, "Filter query to retrieve tests")
 
@@ -31,27 +35,42 @@ func main() {
 
 	flag.Parse()
 
-	if hostUrl == "" {
+	if (importTest || exportResult || executeRemote) && hostUrl == "" {
 		fmt.Println("Missing host url, try " + os.Args[0] + " -h")
 		return
 	}
 
-	if password == "" {
+	if (importTest || exportResult || executeRemote) && password == "" {
 		fmt.Printf("Password: ")
 		pass, _ := gopass.GetPasswd()
 		password = string(pass)
 	}
 
-	switch mode {
-
-	case "EXPORT":
-		jirautils.ExportTests(hostUrl, filter, directory, user, password, keys)
-	case "IMPORT":
-		jirautils.ImportTestsExecution(hostUrl, resultPath, user, password)
-	case "EXECUTE":
-		err := jirautils.ExecuteTestSet(hostUrl, filter, "./features", user, password, keys, resultPath)
+	if executeRemote {
+		err := jirautils.ExecuteTestSet(hostUrl, filter, directory, user, password, keys, resultPath)
 		if err != nil {
 			fmt.Println(err)
+		}
+	} else {
+
+		if importTest {
+			err := jirautils.DownloadTests(hostUrl, filter, directory, user, password, keys)
+			if err != nil {
+				fmt.Println(err)
+			}
+		}
+		if executeTest {
+			err := jirautils.ExecuteCucumberTest(resultPath, directory)
+			if err != nil {
+				fmt.Println(err)
+			}
+		}
+
+		if exportResult {
+			err := jirautils.ExportTestExecution(hostUrl, resultPath, user, password)
+			if err != nil {
+				fmt.Println(err)
+			}
 		}
 
 	}
