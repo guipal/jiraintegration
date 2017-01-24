@@ -23,6 +23,7 @@ import (
 func ExportTests(host string, filter int, outputDirectory, user, password, keys string) {
 	os.MkdirAll(outputDirectory, os.ModePerm)
 	os.Chdir(outputDirectory)
+	defer os.Chdir("../")
 	reqUrl := host + "/rest/raven/1.0/export/test?fz=true"
 	if filter != 0 {
 		reqUrl = reqUrl + "&filter=" + strconv.Itoa(filter)

@@ -14,12 +14,12 @@ import (
 
 func main() {
 
-	var mode, directory, hostUrl, user, password, keys string
+	var mode, directory, hostUrl, user, password, keys, resultPath string
 	var filter int
 
-	flag.StringVar(&mode, "mode", "EXPORT", " [ EXPORT Export tests from Jira | IMPORT Import tests results to Jira | UPDATE Update with HTML report URL to Jenkins]")
+	flag.StringVar(&mode, "mode", "EXPORT", " [ EXPORT Export tests from Jira | IMPORT Import tests results to Jira | UPDATE Update with HTML report URL to Jenkins | EXECUTE Execute tests and upload results]")
 
-	flag.StringVar(&directory, "outputDir", ".", "Target directory for exported tests")
+	flag.StringVar(&directory, "outputDir", "./features", "Target directory for exported tests")
 
 	flag.IntVar(&filter, "filter", 0, "Filter query to retrieve tests")
 
@@ -27,6 +27,7 @@ func main() {
 	flag.StringVar(&user, "user", "", "Jira server user")
 	flag.StringVar(&password, "password", "", "Jira server password")
 	flag.StringVar(&keys, "keys", "", " list of Jira-keys of the tests separated by ';'")
+	flag.StringVar(&resultPath, "resultFile", "./results.json", " Path to cucumber result file")
 
 	flag.Parse()
 
@@ -46,7 +47,12 @@ func main() {
 	case "EXPORT":
 		jirautils.ExportTests(hostUrl, filter, directory, user, password, keys)
 	case "IMPORT":
-		jirautils.ImportTestsExecution(hostUrl, directory, user, password)
+		jirautils.ImportTestsExecution(hostUrl, resultPath, user, password)
+	case "EXECUTE":
+		err := jirautils.ExecuteTestSet(hostUrl, filter, "./features", user, password, keys, resultPath)
+		if err != nil {
+			fmt.Println(err)
+		}
 
 	}
 

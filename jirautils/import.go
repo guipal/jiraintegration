@@ -4,15 +4,15 @@ package jirautils
 import (
 	"net/http"
 
-	"fmt"
-
 	"io/ioutil"
 
 	"bytes"
+
+	"errors"
 )
 
 // exportTests export test to selected output directory
-func ImportTestsExecution(host, resultsFile, user, password string) {
+func ImportTestsExecution(host, resultsFile, user, password string) (err error) {
 	reqUrl := host + "/rest/raven/1.0/import/execution/cucumber"
 	client := &http.Client{}
 
@@ -23,10 +23,13 @@ func ImportTestsExecution(host, resultsFile, user, password string) {
 	req.Header.Set("Content-Type", "application/json")
 	// ...
 	resp, err := client.Do(req)
-	fmt.Println(resp)
 	if err != nil {
-		// handle error
-		fmt.Println(err)
+		return err
 	}
 
+	if resp.StatusCode != 200 {
+		return errors.New("Problem uploading results")
+	}
+
+	return nil
 }
