@@ -19,13 +19,14 @@ import (
 func main() {
 
 	var directory, hostUrl, user, password, passwordFile, keys, resultPath, format string
-	var exportResult, importTest, executeTest, executeRemote bool
+	var exportResult, importTest, executeTest, executeRemote, undefinedSteps bool
 	var filter int
 
 	flag.BoolVar(&exportResult, "export", false, "Export cucumber results to Jira")
 	flag.BoolVar(&importTest, "download_test", false, "Download test Scenarios from Jira")
 	flag.BoolVar(&executeTest, "execute", false, "Execute test Scenarios from $featuresDir")
 	flag.BoolVar(&executeRemote, "executeRemote", false, "Download, Execute & Upload test from/to $host server")
+	flag.BoolVar(&undefinedSteps, "getUndefinedSteps", false, "Get undefined steps definition for provided features")
 
 	flag.StringVar(&directory, "featuresDir", "./features", "Target directory for downloaded tests")
 
@@ -48,7 +49,7 @@ func main() {
 		return
 	}
 
-	if !importTest && !exportResult && !executeRemote && !executeTest {
+	if !importTest && !exportResult && !executeRemote && !executeTest && !undefinedSteps {
 		executeTest = true
 	}
 
@@ -82,6 +83,16 @@ func main() {
 				os.Exit(1)
 			}
 		}
+
+		if undefinedSteps {
+			err := jirautils.GetPendingCucumberSteps(directory)
+			if err != nil {
+				fmt.Println(err)
+				os.Exit(1)
+			}
+
+		}
+
 		if executeTest {
 			if directory == "./features" && len(args) > 0 {
 				if exists, _ := jirautils.Exists(string(args[0])); exists {

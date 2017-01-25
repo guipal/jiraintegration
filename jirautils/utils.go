@@ -80,3 +80,14 @@ func unzip(src, dest string) error {
 
 	return nil
 }
+func StoreResults(path string, result []byte) error {
+	f, _ := os.Create(path)
+	defer f.Close()
+	_, err := f.Write(result)
+	f.Sync()
+	if err != nil {
+		return err
+	}
+	return nil
+
+}

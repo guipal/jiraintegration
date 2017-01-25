@@ -15,6 +15,10 @@ import (
 	"errors"
 
 	"bytes"
+
+	"time"
+
+	"strings"
 )
 
 // DownloadTests Download selected tests to provided output directory
@@ -84,6 +88,7 @@ func ExportTestExecution(host, resultsFile, user, password string) error {
 func ExecuteTestSet(host string, filter int, outputDirectory, user, password, keys, resultFile string) (err error) {
 
 	DownloadTests(host, filter, outputDirectory, user, password, keys)
+	_ = GetPendingCucumberSteps(outputDirectory)
 	err1 := ExecuteCucumberTest("json_pretty", resultFile, outputDirectory)
 	if err1 != nil {
 		return err1
@@ -116,5 +121,42 @@ func ExecuteCucumberTest(format, resultFile, featureDir string) (err error) {
 			return err
 		}
 	}
+	return nil
+}
+
+func GetPendingCucumberSteps(featureDir string) error {
+	cmd := "cucumber"
+	args := []string{"--no-color", "-s"}
+	args = append(args, featureDir)
+	cucumberCommand := exec.Command(cmd, args...)
+	cmd = "sed"
+	args = []string{"-n", "/You can implement/,/@/p"}
+	sedCommand1 := exec.Command(cmd, args...)
+	cmd = "sed"
+	args = []string{"-e", "/You can implement/c\\"}
+	sedCommand2 := exec.Command(cmd, args...)
+
+	sedCommand1.Stdin, _ = cucumberCommand.StdoutPipe()
+	sedCommand2.Stdin, _ = sedCommand1.StdoutPipe()
+	result, _ := sedCommand2.StdoutPipe()
+	_ = cucumberCommand.Start()
+	_ = sedCommand1.Start()
+	_ = cucumberCommand.Wait()
+	_ = sedCommand2.Start()
+	_ = sedCommand1.Wait()
+	pendingSteps, err := ioutil.ReadAll(result)
+	_ = sedCommand2.Wait()
+
+	if err != nil {
+		return err
+	} else {
+		if len(pendingSteps) > 0 {
+			current_time := time.Now().Local()
+			fileName := "features/step_definitions/pending_" + current_time.Format(time.Stamp) + ".rb"
+			fileName = strings.Replace(strings.Replace(fileName, " ", "_", -1), ":", "_", -1)
+			StoreResults(fileName, pendingSteps)
+		}
+	}
+
 	return nil
 }
