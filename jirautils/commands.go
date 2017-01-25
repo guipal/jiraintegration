@@ -8,6 +8,8 @@ import (
 
 	"net/http"
 
+	"net/url"
+
 	"strconv"
 
 	"io/ioutil"
@@ -19,6 +21,8 @@ import (
 	"time"
 
 	"strings"
+
+	"encoding/json"
 )
 
 // DownloadTests Download selected tests to provided output directory
@@ -57,6 +61,71 @@ func DownloadTests(host string, filter int, outputDirectory, user, password, key
 		}
 	}
 	return nil
+
+}
+
+/// DownloadTests Download selected tests to provided output directory
+func DownloadTestsForJiraIssues(host string, outputDirectory, user, password, keys string) (string, error) {
+	reqUrl := host + "/rest/api/latest/search?fields=key"
+
+	jql := "issuetype=test and (issueKEY=d-0 "
+	jiraKeys := strings.Split(keys, ";")
+	for _, value := range jiraKeys {
+		jql = jql + " OR issue in linkedIssues(" + value + ",\"tested by\")"
+	}
+
+	jql = url.QueryEscape(jql)
+
+	reqUrl = reqUrl + "&jql=" + jql + ")"
+
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", reqUrl, nil)
+	req.SetBasicAuth(user, password)
+	// ...
+	resp, err := client.Do(req)
+
+	var keyList string
+
+	if err != nil {
+		return "", err
+	} else {
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return "", err
+		} else {
+			var f interface{}
+			json.Unmarshal(body, &f)
+			m := f.(map[string]interface{})
+
+			for k, v := range m {
+				if k == "issues" {
+					switch vv := v.(type) {
+					case []interface{}:
+						for _, u := range vv {
+							switch kk := u.(type) {
+							case map[string]interface{}:
+								if data, ok := kk["key"].(string); ok {
+									if keyList != "" {
+										keyList = keyList + ";" + data
+									} else {
+										keyList = data
+									}
+								}
+							default:
+								return "", errors.New("No test available for provided jira Issues")
+							}
+						}
+						return keyList, nil
+					default:
+						return "", errors.New("No test available for provided jira Issues")
+					}
+				}
+
+			}
+
+		}
+	}
+	return "", nil
 
 }
 

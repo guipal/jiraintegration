@@ -18,7 +18,7 @@ import (
 
 func main() {
 
-	var directory, hostUrl, user, password, passwordFile, keys, resultPath, format string
+	var directory, hostUrl, user, password, passwordFile, keys, jiraIssues, resultPath, format string
 	var exportResult, importTest, executeTest, executeRemote, undefinedSteps bool
 	var filter int
 
@@ -37,7 +37,8 @@ func main() {
 	flag.StringVar(&format, "format", "", "Cucumber test result format")
 	flag.StringVar(&password, "password", "", "Jira server password")
 	flag.StringVar(&passwordFile, "passwordFile", "", "Jira server password file")
-	flag.StringVar(&keys, "keys", "", " list of Jira-keys of the tests separated by ';'")
+	flag.StringVar(&keys, "keys", "", " Jira-keys list of test-set Issues separated by ';'")
+	flag.StringVar(&jiraIssues, "jiraIssues", "", " Jira-keys list of issues with associated test separated by ';'")
 	flag.StringVar(&resultPath, "resultFile", "", " Path to cucumber result file")
 
 	flag.Parse()
@@ -63,6 +64,14 @@ func main() {
 			password = strings.TrimSpace(string(pass))
 		}
 
+	}
+
+	if jiraIssues != "" {
+		newKeys, err := jirautils.DownloadTestsForJiraIssues(hostUrl, directory, user, password, jiraIssues)
+		keys = newKeys
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 
 	if executeRemote {
