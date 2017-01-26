@@ -50,6 +50,10 @@ func main() {
 		fmt.Println("Missing host url, try " + os.Args[0] + " -h")
 		return
 	}
+	if (importTest || exportResult || executeRemote) && user == "" {
+		fmt.Println("Missing user, try " + os.Args[0] + " -h")
+		return
+	}
 
 	if !importTest && !exportResult && !executeRemote && !executeTest && !undefinedSteps {
 		executeTest = true
