@@ -215,7 +215,7 @@ func GetPendingCucumberSteps(featureDir, stepsDir string) error {
 		return err
 	} else {
 		if len(pendingSteps) > 0 {
-			os.MkdirAll(stepsDir, 777)
+			//os.MkdirAll(stepsDir, 777)
 			current_time := time.Now().Local()
 			fileName := stepsDir + "/pending_" + current_time.Format(time.Stamp) + ".rb"
 			fileName = strings.Replace(strings.Replace(fileName, " ", "_", -1), ":", "_", -1)
