@@ -96,31 +96,26 @@ func DownloadTestsForJiraIssues(host string, outputDirectory, user, password, ke
 			var f interface{}
 			json.Unmarshal(body, &f)
 			m := f.(map[string]interface{})
-
-			for k, v := range m {
-				if k == "issues" {
-					switch vv := v.(type) {
-					case []interface{}:
-						for _, u := range vv {
-							switch kk := u.(type) {
-							case map[string]interface{}:
-								if data, ok := kk["key"].(string); ok {
-									if keyList != "" {
-										keyList = keyList + ";" + data
-									} else {
-										keyList = data
-									}
-								}
-							default:
-								return "", errors.New("No test available for provided jira Issues")
+			v := m["issues"]
+			switch vv := v.(type) {
+			case []interface{}:
+				for _, u := range vv {
+					switch kk := u.(type) {
+					case map[string]interface{}:
+						if data, ok := kk["key"].(string); ok {
+							if keyList != "" {
+								keyList = keyList + ";" + data
+							} else {
+								keyList = data
 							}
 						}
-						return keyList, nil
 					default:
 						return "", errors.New("No test available for provided jira Issues")
 					}
 				}
-
+				return keyList, nil
+			default:
+				return "", errors.New("No test available for provided jira Issues")
 			}
 
 		}
