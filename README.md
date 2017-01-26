@@ -32,8 +32,9 @@ Execute & get undefined steps usign ruby cucumber tool.
     * -format
     
 * **jiraintegration -getUndefinedSteps** *Get undefined steps and place them under features/step_definitions/pending_xxx.rb*
-  * **Optional options**
+  * **Optional options**a
     * -featuresDir
+    * -stepsDir	
   
 ##All in one command 
 Download, get undefined steps, execute & upload results to Jira server within 1 command
@@ -54,8 +55,7 @@ Download, get undefined steps, execute & upload results to Jira server within 1 
 **jiraintegration -h**
 
 ```Bash
-
-  -download_test
+ -download_test
         Download test Scenarios from Jira
   -execute
         Execute test Scenarios from $featuresDir
@@ -83,7 +83,9 @@ Download, get undefined steps, execute & upload results to Jira server within 1 
         Jira server password file
   -resultFile string
          Path to cucumber result file
+  -stepsDir string
+        Target directory for place unddefined steps generated file (default "./features/step_definitions")
   -user string
-        Jira server user 
+        Jira server use
 ```
 

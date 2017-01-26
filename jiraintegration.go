@@ -18,7 +18,7 @@ import (
 
 func main() {
 
-	var directory, hostUrl, user, password, passwordFile, keys, jiraIssues, resultPath, format string
+	var directory, hostUrl, user, password, passwordFile, keys, jiraIssues, resultPath, format, stepsDirectory string
 	var exportResult, importTest, executeTest, executeRemote, undefinedSteps bool
 	var filter int
 
@@ -29,6 +29,7 @@ func main() {
 	flag.BoolVar(&undefinedSteps, "getUndefinedSteps", false, "Get undefined steps definition for provided features")
 
 	flag.StringVar(&directory, "featuresDir", "./features", "Target directory for downloaded tests")
+	flag.StringVar(&stepsDirectory, "stepsDir", "./features/step_definitions", "Step definitions target directory")
 
 	flag.IntVar(&filter, "filter", 0, "Filter query to retrieve tests")
 
@@ -79,7 +80,7 @@ func main() {
 			resultPath = "./results.json"
 		}
 
-		err := jirautils.ExecuteTestSet(hostUrl, filter, directory, user, password, keys, resultPath)
+		err := jirautils.ExecuteTestSet(hostUrl, filter, directory, stepsDirectory, user, password, keys, resultPath)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -94,7 +95,7 @@ func main() {
 		}
 
 		if undefinedSteps {
-			err := jirautils.GetPendingCucumberSteps(directory)
+			err := jirautils.GetPendingCucumberSteps(directory, stepsDirectory)
 			if err != nil {
 				fmt.Println(err)
 				os.Exit(1)

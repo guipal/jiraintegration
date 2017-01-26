@@ -149,10 +149,10 @@ func ExportTestExecution(host, resultsFile, user, password string) error {
 }
 
 // exportTests export test to selected output directory
-func ExecuteTestSet(host string, filter int, outputDirectory, user, password, keys, resultFile string) (err error) {
+func ExecuteTestSet(host string, filter int, outputDirectory, stepsDir, user, password, keys, resultFile string) (err error) {
 
 	DownloadTests(host, filter, outputDirectory, user, password, keys)
-	_ = GetPendingCucumberSteps(outputDirectory)
+	_ = GetPendingCucumberSteps(outputDirectory, stepsDir)
 	err1 := ExecuteCucumberTest("json_pretty", resultFile, outputDirectory)
 	if err1 != nil {
 		return err1
@@ -188,7 +188,7 @@ func ExecuteCucumberTest(format, resultFile, featureDir string) (err error) {
 	return nil
 }
 
-func GetPendingCucumberSteps(featureDir string) error {
+func GetPendingCucumberSteps(featureDir, stepsDir string) error {
 	cmd := "cucumber"
 	args := []string{"--no-color", "-s"}
 	args = append(args, featureDir)
@@ -215,8 +215,9 @@ func GetPendingCucumberSteps(featureDir string) error {
 		return err
 	} else {
 		if len(pendingSteps) > 0 {
+			os.MkdirAll(stepsDir, 777)
 			current_time := time.Now().Local()
-			fileName := "features/step_definitions/pending_" + current_time.Format(time.Stamp) + ".rb"
+			fileName := stepsDir + "/pending_" + current_time.Format(time.Stamp) + ".rb"
 			fileName = strings.Replace(strings.Replace(fileName, " ", "_", -1), ":", "_", -1)
 			StoreResults(fileName, pendingSteps)
 		}
