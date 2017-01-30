@@ -225,3 +225,11 @@ func GetPendingCucumberSteps(featureDir, stepsDir string) error {
 
 	return nil
 }
+
+func CloneStepsRepo(stepRepo string) (string, error) {
+	name := GetRepoName(stepRepo)
+	cloneRepo(name, stepRepo)
+	os.Chdir(name)
+	name = name + "/steps_definitions"
+	return name, nil
+}

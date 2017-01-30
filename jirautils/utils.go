@@ -3,12 +3,14 @@
 package jirautils
 
 import (
-	"os"
-
 	"archive/zip"
-
+	"fmt"
 	"io"
+	"io/ioutil"
+	"os"
+	"os/exec"
 	"path/filepath"
+	"strings"
 )
 
 func Exists(path string) (bool, error) {
@@ -89,5 +91,37 @@ func StoreResults(path string, result []byte) error {
 		return err
 	}
 	return nil
+
+}
+
+func GetRepoName(repo string) string {
+	c1 := exec.Command("echo", repo)
+	c2 := exec.Command("sed", "s/.*[:/]\\([^:/]*\\)\\.git$/\\1/")
+
+	c2.Stdin, _ = c1.StdoutPipe()
+	result, _ := c2.StdoutPipe()
+	_ = c1.Start()
+	_ = c2.Start()
+	_ = c1.Wait()
+	repoName, _ := ioutil.ReadAll(result)
+	_ = c2.Wait()
+
+	return strings.TrimSpace(string(repoName))
+
+}
+
+func cloneRepo(repoName string, repo string) {
+
+	cmd := "git"
+	args := []string{"clone", repo}
+	fmt.Println("Cloning repo: ", repoName)
+	cloneCommand := exec.Command(cmd, args...)
+	cloneCommand.Stdin = os.Stdin
+	cloneCommand.Stdout = os.Stdout
+	cloneCommand.Stderr = os.Stderr
+	if err := cloneCommand.Run(); err != nil {
+		os.Exit(1)
+	}
+	fmt.Println("Successfully cloned", repoName)
 
 }

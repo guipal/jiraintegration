@@ -18,7 +18,7 @@ import (
 
 func main() {
 
-	var directory, hostUrl, user, password, passwordFile, keys, jiraIssues, resultPath, format, stepsDirectory string
+	var directory, hostUrl, user, password, passwordFile, keys, jiraIssues, resultPath, format, stepsDirectory, stepsRepo string
 	var exportResult, importTest, executeTest, executeRemote, undefinedSteps bool
 	var filter int
 
@@ -30,6 +30,7 @@ func main() {
 
 	flag.StringVar(&directory, "featuresDir", "./features", "Target directory for downloaded tests")
 	flag.StringVar(&stepsDirectory, "stepsDir", "./features/step_definitions", "Step definitions target directory")
+	flag.StringVar(&stepsRepo, "stepsRepo", "", "Url to repository containing steps definitions (cucumber structure needed in the repo root=/features)")
 
 	flag.IntVar(&filter, "filter", 0, "Filter query to retrieve tests")
 
@@ -84,11 +85,27 @@ func main() {
 			resultPath = "./results.json"
 		}
 
+		if stepsRepo != "" {
+			var err1 error
+			stepsDirectory, err1 = jirautils.CloneStepsRepo(stepsRepo)
+			if err1 != nil {
+				os.Exit(1)
+			}
+		}
+
 		err := jirautils.ExecuteTestSet(hostUrl, filter, directory, stepsDirectory, user, password, keys, resultPath)
 		if err != nil {
 			fmt.Println(err)
 		}
 	} else {
+		if stepsRepo != "" {
+			var err1 error
+			stepsDirectory, err1 = jirautils.CloneStepsRepo(stepsRepo)
+			if err1 != nil {
+				os.Exit(1)
+			}
+
+		}
 
 		if importTest {
 			err := jirautils.DownloadTests(hostUrl, filter, directory, user, password, keys)
